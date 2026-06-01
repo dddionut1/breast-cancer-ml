@@ -1,6 +1,6 @@
 ﻿# Breast Cancer Detection - ML Classification
 
- Machine Learning pentru detectarea tumorilor 
+ Model Machine Learning pentru detectarea tumorilor 
 maligne/benigne folosind 7 algoritmi de clasificare.
 
 ## Dataset
