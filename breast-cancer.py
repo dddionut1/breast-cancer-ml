@@ -1,69 +1,72 @@
 import numpy as np
 import pandas as pd
 from sklearn.datasets import load_breast_cancer
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 from sklearn.svm import SVC
-from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.naive_bayes import GaussianNB
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 
-
-# datele
+# 1. Load Dataset
 data = load_breast_cancer()
 df = pd.DataFrame(data.data, columns=data.feature_names)
 df["target"] = data.target
 
-'''print(df.shape)
-print(df.head())
-print(df["target"].value_counts())
-print(df.isnull().sum().sum())  # trebuie să fie 0'''
-
-
-# X = toate coloanele EXCEPT target
+# Features (X) and Target (y)
 X = df.drop("target", axis=1)
-
-# y = DOAR coloana target
 y = df["target"]
 
-from sklearn.model_selection import train_test_split
+# 2. Train / Test Split (Stratified to maintain class balance)
 X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=0.2, random_state=42
+    X, y, test_size=0.2, random_state=42, stratify=y
 )
-print(f"Training: {len(X_train)} paciente")
-print(f"Testing:  {len(X_test)} paciente")
+print(f"Training samples: {len(X_train)}")
+print(f"Testing samples:  {len(X_test)}\n")
 
-#Random forest
-print("Random Forest")
-model = RandomForestClassifier(n_estimators=100, random_state=42)#creare
+# 3. Feature Scaling (Critical for distance/margin-based algorithms like SVM & Logistic Regression)
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X_train)
+X_test_scaled = scaler.transform(X_test)
 
-model.fit(X_train, y_train)#antrenare
-
-predictii = model.predict(X_test)#prezicere
-
-
-print(f"Acuratete: {accuracy_score(y_test, predictii) * 100:.1f}%") #evaluare
-print(classification_report(y_test, predictii))
-
-importanta = pd.Series(
-    model.feature_importances_,
-    index=X.columns
-).sort_values(ascending=False)
-print("\nCe conteaza cel mai mult:")
-print(importanta)
-
-
-modele_noi = {
-    "SVM":                 (SVC(random_state=42), X_train, X_test),
-    "Gradient Boosting":   (GradientBoostingClassifier(random_state=42), X_train, X_test),
-    "Naive Bayes":         (GaussianNB(), X_train, X_test),
+# 4. Model Training & Comparison
+models = {
+    "Gaussian Naive Bayes": (GaussianNB(), X_train, X_test),
+    "Random Forest": (RandomForestClassifier(n_estimators=100, random_state=42), X_train, X_test),
+    "Gradient Boosting": (GradientBoostingClassifier(random_state=42), X_train, X_test),
+    "Support Vector Machine (SVC)": (SVC(random_state=42), X_train_scaled, X_test_scaled),
+    "Logistic Regression": (LogisticRegression(random_state=42, max_iter=1000), X_train_scaled, X_test_scaled)
 }
 
-print("\n=== Modele noi — Breast Cancer ===")
-for nume, (model, Xtr, Xte) in modele_noi.items():
-    model.fit(Xtr, y_train)
-    acc = accuracy_score(y_test, model.predict(Xte))
-    print(f"{nume:25} → {acc * 100:.1f}%")
+print("=== Model Benchmark Results ===")
+best_model_name = ""
+best_acc = 0.0
+best_model_instance = None
 
+for name, (model, xtr, xte) in models.items():
+    model.fit(xtr, y_train)
+    preds = model.predict(xte)
+    acc = accuracy_score(y_test, preds)
+    print(f"{name:30} -> Accuracy: {acc * 100:.2f}%")
+    
+    if acc > best_acc:
+        best_acc = acc
+        best_model_name = name
+        best_model_instance = (model, xte)
 
+# 5. Detailed Evaluation of Top Performer
+print(f"\n=== Detailed Evaluation: {best_model_name} ===")
+best_preds = best_model_instance[0].predict(best_model_instance[1])
+print("Confusion Matrix:")
+print(confusion_matrix(y_test, best_preds))
+print("\nClassification Report (Recall prioritized for medical diagnosis):")
+print(classification_report(y_test, best_preds, target_names=["Malignant (0)", "Benign (1)"]))
+
+# 6. Feature Importance (via Random Forest)
+rf = RandomForestClassifier(n_estimators=100, random_state=42)
+rf.fit(X_train, y_train)
+feature_importances = pd.Series(rf.feature_importances_, index=X.columns).sort_values(ascending=False)
+
+print("Top 5 Most Predictive Features (Random Forest):")
+print(feature_importances.head(5))
