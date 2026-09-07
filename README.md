@@ -1,31 +1,51 @@
-﻿# Breast Cancer Detection - ML Classification
+﻿# Breast Cancer Detection — ML Classification Pipeline
 
- Model Machine Learning pentru detectarea tumorilor 
-maligne/benigne folosind 7 algoritmi de clasificare.
+A Machine Learning diagnostic pipeline designed to classify breast tumor biopsies as **Malignant** or **Benign** by benchmarking multiple classification algorithms.
 
-## Dataset
-- Sursa: sklearn built-in (Wisconsin Breast Cancer Dataset)
-- 569 paciente, 30 caracteristici medicale
-- Target: malign (0) / benign (1)
+---
 
-## Rezultate
+## Overview & Dataset
 
-| Model | Acuratețe |
-|-------|-----------|
-| Naive Bayes | 97.4% |
-| Random Forest | 96.5% |
-| Gradient Boosting | 95.6% |
-| SVM | 94.7% |
+* **Source:** Wisconsin Breast Cancer Diagnostic Dataset (`sklearn.datasets.load_breast_cancer`)
+* **Samples:** 569 patient instances
+* **Features:** 30 continuous medical attributes extracted from digitized fine needle aspirate (FNA) images (e.g., radius, texture, perimeter, area, smoothness, concavity)
+* **Target Classes:** 
+  * `0`: Malignant
+  * `1`: Benign
 
-## Ce am aplicat
-- Explorare și analiză date
-- Feature Importance (Random Forest)
-- Feature Scaling (StandardScaler)
-- Comparație 7 modele ML
+---
 
-## Tehnologii
-Python · scikit-learn · Pandas · NumPy
+## Technical Methodology
 
-## Concluzie
-Naive Bayes câștigă datorită independenței relative
-a măsurătorilor medicale — model simplu, rezultat superior.
+* **Data Preprocessing & Splitting:** Stratified 80/20 train/test split to preserve natural class balance across sets.
+* **Feature Scaling:** `StandardScaler` fitted strictly on training data and transformed across test data to prevent data leakage and optimize margin/distance-based algorithms (SVM, Logistic Regression).
+* **Multi-Model Benchmark:** Evaluated and tuned multiple supervised models (Gaussian Naive Bayes, Random Forest, Gradient Boosting, Support Vector Classifier, Logistic Regression).
+* **Feature Importance:** Analyzed Gini impurity decreases via Random Forest to identify primary clinical predictors (`worst perimeter`, `worst concave points`, `worst radius`).
+* **Medical Metric Priority:** Special emphasis placed on **Recall (Sensitivity)** for malignant cases to minimize critical false negatives in diagnostic screening.
+
+---
+
+## Benchmark Results
+
+| Model | Accuracy |
+| :--- | :---: |
+| **Gaussian Naive Bayes** | **97.37%** |
+| **Random Forest Classifier** | **96.49%** |
+| **Gradient Boosting** | **95.61%** |
+| **Support Vector Classifier (SVC)** | **94.74%** |
+
+---
+
+## Tech Stack
+
+* **Language:** Python 3
+* **Libraries:** scikit-learn, Pandas, NumPy, Matplotlib, Seaborn
+
+---
+
+## Execution Instructions
+
+1. **Clone the repository:**
+   ```bash
+   git clone [https://github.com/dddionut1/breast-cancer-ml.git](https://github.com/dddionut1/breast-cancer-ml.git)
+   cd breast-cancer-ml
